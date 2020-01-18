@@ -1,4 +1,4 @@
-#include <mav_trajectory_generation_example/example_planner.h>
+#include <mav_trajectory_generation_example/multipoints_planner.h>
 
 ExamplePlanner::ExamplePlanner(ros::NodeHandle& nh) :
     nh_(nh),
@@ -19,9 +19,12 @@ ExamplePlanner::ExamplePlanner(ros::NodeHandle& nh) :
   pub_markers_ =
       nh.advertise<visualization_msgs::MarkerArray>("trajectory_markers", 0);
 
+  // pub_trajectory_ =
+  //     nh.advertise<mav_planning_msgs::PolynomialTrajectory4D>("trajectory",
+  //                                                             0);
   pub_trajectory_ =
-      nh.advertise<mav_planning_msgs::PolynomialTrajectory4D>("trajectory",
-                                                              0);
+      nh.advertise<mav_planning_msgs::PolynomialTrajectory>("trajectory",
+                                                              0);  
 
   // subscriber for Odometry
   sub_odom_ =
@@ -47,6 +50,8 @@ void ExamplePlanner::setMaxSpeed(const double max_v) {
 // we neglect attitude here for simplicity
 bool ExamplePlanner::planTrajectory(const Eigen::VectorXd& goal_pos,
                                     const Eigen::VectorXd& goal_vel,
+                                    const Eigen::VectorXd& immediate1_pos,
+                                    // const Eigen::VectorXd& immediate1_vel, 
                                     mav_trajectory_generation::Trajectory* trajectory) {
 
 
@@ -60,10 +65,12 @@ bool ExamplePlanner::planTrajectory(const Eigen::VectorXd& goal_pos,
   const int derivative_to_optimize =
       mav_trajectory_generation::derivative_order::SNAP;
 
-  // we have 2 vertices:
+  // we have 3 vertices:
   // Start = current position
   // end = desired position and velocity
-  mav_trajectory_generation::Vertex start(dimension), end(dimension);
+  // immediate1 = a middle vertices
+
+  mav_trajectory_generation::Vertex start(dimension), end(dimension), immediate1(dimension);
 
 
   /******* Configure start point *******/
@@ -77,6 +84,12 @@ bool ExamplePlanner::planTrajectory(const Eigen::VectorXd& goal_pos,
 
   // add waypoint to list
   vertices.push_back(start);
+
+  /******* Configure middle point *******/
+  // immediate1.addConstraint(mav_trajectory_generation::derivative_order::POSITION, Eigen::Vector3d(1,2,2));
+  immediate1.addConstraint(mav_trajectory_generation::derivative_order::POSITION, immediate1_pos);
+//   immediate1.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY, immediate1_vel);
+  vertices.push_back(immediate1);
 
 
   /******* Configure end point *******/
@@ -95,8 +108,15 @@ bool ExamplePlanner::planTrajectory(const Eigen::VectorXd& goal_pos,
   std::vector<double> segment_times;
   segment_times = estimateSegmentTimes(vertices, max_v_, max_a_);
 
-  // Set up polynomial solver with default params
-  mav_trajectory_generation::NonlinearOptimizationParameters parameters;
+  // // set up LINEAR optimization problem
+  // const int N = 10;
+  // mav_trajectory_generation::PolynomialOptimization<N> opt(dimension);
+  // opt.setupFromVertices(vertices, segment_times, derivative_to_optimize);
+  // opt.solveLinear();
+
+
+  // set up NONLINEAR optimization problem
+  mav_trajectory_generation::NonlinearOptimizationParameters parameters;  // Set up polynomial solver with default params
 
   // set up optimization problem
   const int N = 10;
@@ -112,6 +132,8 @@ bool ExamplePlanner::planTrajectory(const Eigen::VectorXd& goal_pos,
 
   // get trajectory as polynomial parameters
   opt.getTrajectory(&(*trajectory));
+
+  std::cout << "size of trajectory: K  = " << trajectory->K() << ", D = " << trajectory->D() << ", N = " << trajectory->N() << std::endl;
 
   return true;
 }

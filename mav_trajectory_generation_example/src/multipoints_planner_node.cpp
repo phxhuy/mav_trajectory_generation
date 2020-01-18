@@ -14,7 +14,7 @@
  */
 
 #include  "ros/ros.h"
-#include <mav_trajectory_generation_example/example_planner.h>
+#include <mav_trajectory_generation_example/multipoints_planner.h>
 
 #include <iostream>
 
@@ -33,6 +33,11 @@ int main(int argc, char** argv) {
   position << 3.0, 5.0, 2.0;
   velocity << 0.0, 0.0, 0.0;
 
+  // define the middle point
+  Eigen::Vector3d middle1_pos, middle1_vel;
+  middle1_pos << 0.0, 5.0, 4.0;
+//   middle1_vel << 0.0, 0.0, 0.0;
+
   // THIS SHOULD NORMALLY RUN INSIDE ROS::SPIN!!! JUST FOR DEMO PURPOSES LIKE THIS.
   ROS_WARN_STREAM("PRESS ENTER TO UPDATE CURRENT POSITION AND SEND TRAJECTORY");
   std::cin.get();
@@ -41,7 +46,12 @@ int main(int argc, char** argv) {
   }
 
   mav_trajectory_generation::Trajectory trajectory;
-  planner.planTrajectory(position, velocity, &trajectory);
+
+  int start_s=clock();
+  planner.planTrajectory(position, velocity, middle1_pos, &trajectory);
+  int stop_s=clock();
+  std::cout << "optimization time: " << (stop_s-start_s)/double(CLOCKS_PER_SEC)*1000 << " ms" << std::endl;
+  
   planner.publishTrajectory(trajectory);
   ROS_WARN_STREAM("DONE. GOODBYE.");
 

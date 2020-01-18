@@ -20,6 +20,13 @@ cs_add_executable(trajectory_generation_6dof_example
         src/example_planner_6dof_node.cc
 )
 
+# multipoints planner
+
+cs_add_executable(trajectory_generation_multipoints
+        src/multipoints_planner.cpp
+        src/multipoints_planner_node.cpp
+)
+
 ##########
 # EXPORT #
 ##########
