@@ -30,12 +30,12 @@ int main(int argc, char** argv) {
 
   // define set point
   Eigen::Vector3d position, velocity;
-  position << 3.0, 5.0, 2.0;
+  position << -3.0, -3.0, 1.0;
   velocity << 0.0, 0.0, 0.0;
 
   // define the middle point
   Eigen::Vector3d middle1_pos, middle1_vel;
-  middle1_pos << 0.0, 5.0, 4.0;
+  middle1_pos << 0.0, -3.0, 1.0;
 //   middle1_vel << 0.0, 0.0, 0.0;
 
   // THIS SHOULD NORMALLY RUN INSIDE ROS::SPIN!!! JUST FOR DEMO PURPOSES LIKE THIS.

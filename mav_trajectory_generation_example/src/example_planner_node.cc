@@ -30,8 +30,13 @@ int main(int argc, char** argv) {
 
   // define set point
   Eigen::Vector3d position, velocity;
-  position << 3.0, 5.0, 2.0;
+  position << 0.0, 5.0, 2.0;
   velocity << 0.0, 0.0, 0.0;
+
+  // define another set point
+  Eigen::Vector3d position2, velocity2;
+  position2 << -3.0, -5.0, 2.0;
+  velocity2 << 0.0, 0.0, 0.0;
 
   // THIS SHOULD NORMALLY RUN INSIDE ROS::SPIN!!! JUST FOR DEMO PURPOSES LIKE THIS.
   ROS_WARN_STREAM("PRESS ENTER TO UPDATE CURRENT POSITION AND SEND TRAJECTORY");
@@ -42,6 +47,8 @@ int main(int argc, char** argv) {
 
   mav_trajectory_generation::Trajectory trajectory;
   planner.planTrajectory(position, velocity, &trajectory);
+  planner.planTrajectory(position2, velocity2, &trajectory);
+
   planner.publishTrajectory(trajectory);
   ROS_WARN_STREAM("DONE. GOODBYE.");
 

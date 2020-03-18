@@ -20,7 +20,7 @@ ExamplePlanner::ExamplePlanner(ros::NodeHandle& nh) :
       nh.advertise<visualization_msgs::MarkerArray>("trajectory_markers", 0);
 
   pub_trajectory_ =
-      nh.advertise<mav_planning_msgs::PolynomialTrajectory4D>("trajectory",
+      nh.advertise<mav_planning_msgs::PolynomialTrajectory>("trajectory",
                                                               0);
 
   // subscriber for Odometry

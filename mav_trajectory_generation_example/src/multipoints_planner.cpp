@@ -26,9 +26,9 @@ ExamplePlanner::ExamplePlanner(ros::NodeHandle& nh) :
       nh.advertise<mav_planning_msgs::PolynomialTrajectory>("trajectory",
                                                               0);  
 
-  // subscriber for Odometry
+  // subscriber for Odometry (uav_pose)  
   sub_odom_ =
-      nh.subscribe("uav_pose", 1, &ExamplePlanner::uavOdomCallback, this);
+      nh.subscribe("/mavros/local_position/odom", 1, &ExamplePlanner::uavOdomCallback, this);
 }
 
 // Callback to get current Pose of UAV
@@ -63,7 +63,10 @@ bool ExamplePlanner::planTrajectory(const Eigen::VectorXd& goal_pos,
 
   // Optimze up to 4th order derivative (SNAP)
   const int derivative_to_optimize =
-      mav_trajectory_generation::derivative_order::SNAP;
+      // mav_trajectory_generation::derivative_order::SNAP;     //original: minimum snap
+      // mav_trajectory_generation::derivative_order::POSITION; //very weird trajectory. Don't use
+      mav_trajectory_generation::derivative_order::VELOCITY;
+      // mav_trajectory_generation::derivative_order::JERK;
 
   // we have 3 vertices:
   // Start = current position
@@ -77,6 +80,8 @@ bool ExamplePlanner::planTrajectory(const Eigen::VectorXd& goal_pos,
   // set start point constraints to current position and set all derivatives to zero
   start.makeStartOrEnd(current_pose_.translation(),
                        derivative_to_optimize);
+  
+  std::cout << "current pose: " << current_pose_.translation() << std::endl;
 
   // set start point's velocity to be constrained to current velocity
   start.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY,
